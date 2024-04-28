@@ -88,8 +88,8 @@ public class MetaTileEntityFusionReactor extends RecipeMapMultiblockController
 
     protected static final int NO_COLOR = 0;
 
-    private final int tier;
-    private EnergyContainerList inputEnergyContainers;
+    protected final int tier;
+    protected EnergyContainerList inputEnergyContainers;
     private long heat = 0; // defined in TileEntityFusionReactor but serialized in FusionRecipeLogic
     private int fusionRingColor = NO_COLOR;
     private final FusionProgressSupplier progressBarSupplier;
@@ -286,7 +286,7 @@ public class MetaTileEntityFusionReactor extends RecipeMapMultiblockController
         };
     }
 
-    private long calculateEnergyStorageFactor(int energyInputAmount) {
+    protected long calculateEnergyStorageFactor(int energyInputAmount) {
         return energyInputAmount * (long) Math.pow(2, tier - 6) * 10000000L;
     }
 
@@ -389,7 +389,7 @@ public class MetaTileEntityFusionReactor extends RecipeMapMultiblockController
         } else if (tier == GTValues.ZPM) {
             // MK2
             builder.widget(new ImageWidget(65, 9, 69, 12, GuiTextures.FUSION_REACTOR_MK2_TITLE).setIgnoreColor(true));
-        } else {
+        } else if (tier == GTValues.UV) {
             // MK3
             builder.widget(new ImageWidget(64, 9, 71, 12, GuiTextures.FUSION_REACTOR_MK3_TITLE).setIgnoreColor(true));
         }
@@ -570,7 +570,7 @@ public class MetaTileEntityFusionReactor extends RecipeMapMultiblockController
         }
     }
 
-    private class FusionRecipeLogic extends MultiblockRecipeLogic {
+    protected class FusionRecipeLogic extends MultiblockRecipeLogic {
 
         public FusionRecipeLogic(MetaTileEntityFusionReactor tileEntity) {
             super(tileEntity);
