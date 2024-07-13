@@ -9,6 +9,8 @@ import gregtech.api.metatileentity.registry.MTERegistry;
 import gregtech.api.util.BlockInfo;
 import gregtech.api.util.RelativeDirection;
 
+import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
+
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -24,81 +26,66 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BlockPattern {
 
     static EnumFacing[] FACINGS = { EnumFacing.SOUTH, EnumFacing.NORTH, EnumFacing.WEST, EnumFacing.EAST, EnumFacing.UP,
             EnumFacing.DOWN };
-    public final int[][] aisleRepetitions;
     public final RelativeDirection[] structureDir;
-    protected final TraceabilityPredicate[][][] blockMatches; // [z][y][x]
-    protected final int fingerLength; // z size
-    protected final int thumbLength; // y size
-    protected final int palmLength; // x size
+    protected final int[] dimensions;
+    protected final int[] startOffset;
+    protected final PatternAisle[] aisles;
+    protected final Char2ObjectMap<TraceabilityPredicate> predicates;
     protected final BlockWorldState worldState = new BlockWorldState();
     protected final PatternMatchContext matchContext = new PatternMatchContext();
     protected final Map<TraceabilityPredicate.SimplePredicate, Integer> globalCount;
     protected final Map<TraceabilityPredicate.SimplePredicate, Integer> layerCount;
 
     public Long2ObjectMap<BlockInfo> cache = new Long2ObjectOpenHashMap<>();
-    // x, y, z, minZ, maxZ
-    private int[] centerOffset = null;
 
     /**
      * The repetitions per aisle along the axis of repetition
      */
     public int[] formedRepetitionCount;
 
-    public BlockPattern(@NotNull TraceabilityPredicate[][][] predicatesIn, @NotNull RelativeDirection[] structureDir,
-                        @NotNull int[][] aisleRepetitions) {
-        this.blockMatches = predicatesIn;
-        this.globalCount = new HashMap<>();
-        this.layerCount = new HashMap<>();
-        this.fingerLength = predicatesIn.length;
-        this.structureDir = structureDir;
-        this.aisleRepetitions = aisleRepetitions;
-        this.formedRepetitionCount = new int[aisleRepetitions.length];
+    // how many not nulls to keep someone from not passing in null?
+    public BlockPattern(@NotNull PatternAisle @NotNull [] aisles, int @NotNull [] dimensions, @NotNull RelativeDirection @NotNull [] directions,
+                        int @Nullable [] startOffset, @NotNull Char2ObjectMap<TraceabilityPredicate> predicates, char centerChar) {
+        this.aisles = aisles;
+        this.dimensions = dimensions;
+        this.structureDir = directions;
+        this.predicates = predicates;
+        this.startOffset = startOffset;
 
-        if (this.fingerLength > 0) {
-            this.thumbLength = predicatesIn[0].length;
-
-            if (this.thumbLength > 0) {
-                this.palmLength = predicatesIn[0][0].length;
-            } else {
-                this.palmLength = 0;
-            }
-        } else {
-            this.thumbLength = 0;
-            this.palmLength = 0;
-        }
-
-        initializeCenterOffsets();
+        if (this.startOffset == null) legacyStartOffset(centerChar);
     }
 
-    private void initializeCenterOffsets() {
-        loop:
-        for (int x = 0; x < this.palmLength; x++) {
-            for (int y = 0; y < this.thumbLength; y++) {
-                for (int z = 0, minZ = 0, maxZ = 0; z <
-                        this.fingerLength; minZ += aisleRepetitions[z][0], maxZ += aisleRepetitions[z][1], z++) {
-                    TraceabilityPredicate predicate = this.blockMatches[z][y][x];
-                    if (predicate.isCenter) {
-                        centerOffset = new int[] { x, y, z, minZ, maxZ };
-                        break loop;
-                    }
-                }
+    /**
+     * For legacy compat only,
+     * @param center The center char to look for
+     */
+    private void legacyStartOffset(char center) {
+        // could also use aisles.length but this is cooler
+        for (int aisleI = 0; aisleI < dimensions[2]; aisleI++) {
+            int[] result = aisles[aisleI].firstInstanceOf(center);
+            if (result != null) {
+                startOffset[0] = aisleI;
+                startOffset[1] = result[0];
+                startOffset[2] = result[2];
+                return;
             }
         }
-        if (centerOffset == null) {
-            throw new IllegalArgumentException("Didn't find center predicate");
-        }
+
+        throw new IllegalArgumentException("Didn't find center predicate");
     }
 
     public PatternError getError() {
@@ -623,6 +610,15 @@ public class BlockPattern {
             result[pos.getX() - finalMinX][pos.getY() - finalMinY][pos.getZ() - finalMinZ] = info;
         });
         return result;
+    }
+
+    private BlockPos offsetFrom(BlockPos start, int aisleOffset, int stringOffset, int charOffset, EnumFacing frontFacing,
+                                EnumFacing upFacing, boolean flip) {
+        GreggyBlockPos pos = new GreggyBlockPos(start);
+        pos.offset(structureDir[0].getRelativeFacing(frontFacing, upFacing, flip), aisleOffset);
+        pos.offset(structureDir[1].getRelativeFacing(frontFacing, upFacing, flip), stringOffset);
+        pos.offset(structureDir[2].getRelativeFacing(frontFacing, upFacing, flip), charOffset);
+        return pos.immutable();
     }
 
     private BlockPos setActualRelativeOffset(int x, int y, int z, EnumFacing facing, EnumFacing upwardsFacing,
