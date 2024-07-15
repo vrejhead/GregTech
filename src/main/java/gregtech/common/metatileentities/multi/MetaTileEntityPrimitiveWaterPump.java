@@ -138,7 +138,7 @@ public class MetaTileEntityPrimitiveWaterPump extends MultiblockControllerBase i
     }
 
     @Override
-    protected BlockPattern createStructurePattern() {
+    protected @NotNull BlockPattern createStructurePattern() {
         return FactoryBlockPattern.start()
                 .aisle("XXXX", "**F*", "**F*")
                 .aisle("XXHX", "F**F", "FFFF")
