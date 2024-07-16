@@ -8,28 +8,25 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 
+import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
+import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class MultiblockShapeInfo {
 
-    /** {@code [x][y][z]} */
-    private final BlockInfo[][][] blocks;
-
-    public MultiblockShapeInfo(BlockInfo[][][] blocks) {
-        this.blocks = blocks;
-    }
-
     /**
-     * @return the blocks in an array of format: {@code [x][y][z]}
+     * Array of aisles, you should use {@link PreviewBlockPattern} instead
      */
-    public BlockInfo[][][] getBlocks() {
-        return blocks;
+    protected final PatternAisle[] aisles;
+    protected final Char2ObjectMap<BlockInfo> symbols;
+
+    public MultiblockShapeInfo(PatternAisle[] aisles, Char2ObjectMap<BlockInfo> symbols) {
+        this.aisles = aisles;
+        this.symbols = symbols;
     }
 
     public static Builder builder() {
@@ -38,11 +35,11 @@ public class MultiblockShapeInfo {
 
     public static class Builder {
 
-        private List<String[]> shape = new ArrayList<>();
-        private Map<Character, BlockInfo> symbolMap = new HashMap<>();
+        private List<PatternAisle> shape = new ArrayList<>();
+        private Char2ObjectMap<BlockInfo> symbolMap = new Char2ObjectOpenHashMap<>();
 
         public Builder aisle(String... data) {
-            this.shape.add(data);
+            this.shape.add(new PatternAisle(1, data));
             return this;
         }
 
@@ -80,45 +77,15 @@ public class MultiblockShapeInfo {
                     "Supplier must supply either a MetaTileEntity or an IBlockState! Actual: " + part.getClass());
         }
 
-        @NotNull
-        private BlockInfo[][][] bakeArray() {
-            final int maxZ = shape.size();
-            final int maxY = shape.get(0).length;
-            final int maxX = shape.get(0)[0].length();
-            BlockInfo[][][] blockInfos = new BlockInfo[maxX][maxY][maxZ];
-            for (int z = 0; z < maxZ; z++) {
-                String[] aisleEntry = shape.get(z);
-                for (int y = 0; y < maxY; y++) {
-                    String columnEntry = aisleEntry[y];
-                    for (int x = 0; x < maxX; x++) {
-                        BlockInfo info = symbolMap.getOrDefault(columnEntry.charAt(x), BlockInfo.EMPTY);
-                        TileEntity tileEntity = info.getTileEntity();
-                        if (tileEntity instanceof MetaTileEntityHolder holder) {
-                            final MetaTileEntity mte = holder.getMetaTileEntity();
-                            holder = new MetaTileEntityHolder();
-                            holder.setMetaTileEntity(mte);
-                            holder.getMetaTileEntity().onPlacement();
-                            holder.getMetaTileEntity().setFrontFacing(mte.getFrontFacing());
-                            info = new BlockInfo(info.getBlockState(), holder);
-                        } else if (tileEntity != null) {
-                            info = new BlockInfo(info.getBlockState(), tileEntity);
-                        }
-                        blockInfos[x][y][z] = info;
-                    }
-                }
-            }
-            return blockInfos;
-        }
-
         public Builder shallowCopy() {
             Builder builder = new Builder();
             builder.shape = new ArrayList<>(this.shape);
-            builder.symbolMap = new HashMap<>(this.symbolMap);
+            builder.symbolMap = new Char2ObjectOpenHashMap<>(this.symbolMap);
             return builder;
         }
 
         public MultiblockShapeInfo build() {
-            return new MultiblockShapeInfo(bakeArray());
+            return new MultiblockShapeInfo(shape.toArray(new PatternAisle[0]), symbolMap);
         }
     }
 }
