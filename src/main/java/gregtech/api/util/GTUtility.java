@@ -891,4 +891,33 @@ public class GTUtility {
                 (1.0 / (1 - splitPoint)) * (tracker.get() - splitPoint) : 0;
         return Pair.of(supplier1, supplier2);
     }
+
+    /**
+     * Stores a boolean array to a long, with the leftmost element being stored in the lowest bit
+     * @param array The array, length 64, it is not mutated
+     * @return The long representation
+     */
+    public static long boolArrToLong(boolean[] array) {
+        if (array.length != 64) throw new IllegalArgumentException("Array length must be 64!");
+
+        long sum = 0;
+        for (int i = 0; i < 64; i++) {
+            if (array[i]) sum |= 1L << i;
+        }
+        return sum;
+    }
+
+    /**
+     * Stores the result of a long to the boolean array, with the lowest bit being stored to the leftmost element
+     * @param serial The long representation
+     * @param store The boolean array, length 64, mutated
+     */
+    public static void longToBoolArr(long serial, boolean[] store) {
+        if (store.length != 64) throw new IllegalArgumentException("Array length must be 64!");
+
+        for (int i = 0; i < 64; i++) {
+            store[i] = (serial & 1) == 1;
+            serial >>= 1;
+        }
+    }
 }
