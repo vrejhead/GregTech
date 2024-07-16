@@ -162,7 +162,8 @@ public class MachineBuilderWidget extends WidgetGroup {
         int rY = 5;
         int rZ = 5;
         for (MultiblockShapeInfo shapeInfo : controllerBase.getMatchingShapes()) {
-            BlockInfo[][][] blockInfos = shapeInfo.getBlocks();
+            BlockInfo[][][] blockInfos = null;
+            // todo fix
             rX = Math.max(blockInfos.length, rX);
             rY = Math.max(blockInfos[0].length, rY);
             rZ = Math.max(blockInfos[0][0].length, rZ);
