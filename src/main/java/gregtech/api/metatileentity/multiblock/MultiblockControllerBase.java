@@ -118,7 +118,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
         super.update();
         if (!getWorld().isRemote) {
             if (getOffsetTimer() % 20 == 0 || isFirstTick()) {
-                checkStructurePattern();
+                checkStructurePatterns();
             }
             // DummyWorld is the world for the JEI preview. We do not want to update the Multi in this world,
             // besides initially forming it in checkStructurePattern
@@ -182,7 +182,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
                 for (BlockPattern pattern : structurePatterns) {
                     if (pattern != null) pattern.clearCache();
                 }
-                checkStructurePattern();
+                checkStructurePatterns();
             }
         }
     }
@@ -372,7 +372,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
 
     /**
      * Whether a structure at the index should be checked. The check is only performed if this returns true and the
-     * structure is not null.
+     * structure is not null. This helps save on performance if there is a redundant structure.
      * 
      * @param index The index, with 0 being the main structure
      * @return True if the structure should be checked
@@ -381,7 +381,9 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
         return true;
     }
 
-    public void checkStructurePattern() {}
+    public void checkStructurePattern() {
+        checkStructurePattern(0);
+    }
 
     public void checkStructurePatterns() {
         for (int i = 0; i < structurePatterns.length; i++) {
@@ -395,7 +397,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
 
         long time = System.nanoTime();
         PatternMatchContext context = pattern.checkPatternFastAt(getWorld(), getPos(),
-                getFrontFacing().getOpposite(), getUpwardsFacing(), allowsFlip());
+                getFrontFacing(), getUpwardsFacing(), allowsFlip());
         System.out.println(
                 "structure check for " + getClass().getSimpleName() + " took " + (System.nanoTime() - time) + " nanos");
 
@@ -427,7 +429,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
             this.multiblockAbilities.putAll(abilities);
             parts.forEach(part -> part.addToMultiBlock(this));
             this.structuresFormed[index] = true;
-            writeCustomData(STRUCTURE_FORMED, buf -> buf.writeBoolean(true));
+            writeCustomData(STRUCTURE_FORMED, buf -> buf.writeVarInt(index));
             formStructure(context);
         } else if (context == null && structuresFormed[index]) {
             invalidateStructure();
@@ -437,6 +439,8 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
                 setFlipped(context.neededFlip(), index);
             }
         }
+
+        GTLog.logger.info("Checked pattern " + index + " verdict: " + structuresFormed[index]);
     }
 
     protected void formStructure(PatternMatchContext context) {}
@@ -447,7 +451,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
         this.multiblockParts.clear();
         Arrays.fill(structuresFormed, false);
         Arrays.fill(isFlipped, false);
-        writeCustomData(STRUCTURE_FORMED, buf -> buf.writeBoolean(false));
+        writeCustomData(STRUCTURE_FORMED, buf -> buf.writeVarInt(-1));
     }
 
     protected void invalidStructureCaches() {
@@ -517,7 +521,12 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
             this.upwardsFacing = EnumFacing.VALUES[buf.readByte()];
             scheduleRenderUpdate();
         } else if (dataId == STRUCTURE_FORMED) {
-            GTUtility.longToBoolArr(buf.readLong(), structuresFormed);
+            int result = buf.readVarInt();
+            if (result == -1) {
+                Arrays.fill(structuresFormed, false);
+            } else {
+                structuresFormed[result] = true;
+            }
             if (!isStructureFormed()) {
                 GregTechAPI.soundManager.stopTileSound(getPos());
             }
@@ -559,7 +568,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
             invalidStructureCaches();
             // recheck structure pattern immediately to avoid a slight "lag"
             // on deforming when rotating a multiblock controller
-            checkStructurePattern();
+            checkStructurePatterns();
         }
     }
 
