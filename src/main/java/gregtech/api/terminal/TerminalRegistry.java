@@ -22,7 +22,6 @@ import gregtech.common.terminal.app.guide.SimpleMachineGuideApp;
 import gregtech.common.terminal.app.guide.TutorialGuideApp;
 import gregtech.common.terminal.app.guideeditor.GuideEditorApp;
 import gregtech.common.terminal.app.hardwaremanager.HardwareManagerApp;
-import gregtech.common.terminal.app.multiblockhelper.MultiBlockPreviewARApp;
 import gregtech.common.terminal.app.prospector.ProspectorApp;
 import gregtech.common.terminal.app.prospector.ProspectorMode;
 import gregtech.common.terminal.app.recipechart.RecipeChartApp;
@@ -125,12 +124,6 @@ public class TerminalRegistry {
                 .upgrade(3, MetaItems.SENSOR_IV.getStackForm(1))
                 .upgrade(4, MetaItems.SENSOR_LuV.getStackForm(1))
                 .device(DeviceHardware.DEVICE.PROSPECTOR_HV)
-                .build();
-        AppRegistryBuilder.create(new MultiBlockPreviewARApp())
-                .battery(GTValues.LV, 128)
-                .device(DeviceHardware.DEVICE.CAMERA)
-                .upgrade(1, MetaItems.EMITTER_HV.getStackForm(4), MetaItems.WORKSTATION_EV.getStackForm(2))
-                .defaultApp()
                 .build();
         if (Mods.JustEnoughItems.isModLoaded()) {
             AppRegistryBuilder.create(new RecipeChartApp())
