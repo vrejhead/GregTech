@@ -894,6 +894,7 @@ public class GTUtility {
 
     /**
      * Stores a boolean array to a long, with the leftmost element being stored in the lowest bit
+     * 
      * @param array The array, length 64, it is not mutated
      * @return The long representation
      */
@@ -909,8 +910,9 @@ public class GTUtility {
 
     /**
      * Stores the result of a long to the boolean array, with the lowest bit being stored to the leftmost element
+     * 
      * @param serial The long representation
-     * @param store The boolean array, length 64, mutated
+     * @param store  The boolean array, length 64, mutated
      */
     public static void longToBoolArr(long serial, boolean[] store) {
         if (store.length != 64) throw new IllegalArgumentException("Array length must be 64!");
