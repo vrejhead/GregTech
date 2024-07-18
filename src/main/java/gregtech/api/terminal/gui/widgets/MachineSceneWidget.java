@@ -6,9 +6,6 @@ import gregtech.api.gui.resources.TextTexture;
 import gregtech.api.gui.widgets.WidgetGroup;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IMultiblockPart;
-import gregtech.api.metatileentity.multiblock.MultiblockControllerBase;
-import gregtech.api.pattern.PatternMatchContext;
 import gregtech.api.terminal.os.TerminalTheme;
 import gregtech.api.util.FacingPos;
 import gregtech.client.renderer.scene.FBOWorldSceneRenderer;
@@ -33,11 +30,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import javax.vecmath.Vector3f;
 
@@ -193,63 +187,63 @@ public class MachineSceneWidget extends WidgetGroup {
     }
 
     private void updateScene() {
-//        if (!mte.isValid()) return;
-//        World world = mte.getWorld();
-//        if (worldSceneRenderer != null) {
-//            worldSceneRenderer.releaseFBO();
-//        }
-//        worldSceneRenderer = new FBOWorldSceneRenderer(world, 1080, 1080);
-//        worldSceneRenderer.setAfterWorldRender(this::renderBlockOverLay);
-//        cores = new HashSet<>();
-//        around = new HashSet<>();
-//        cores.add(pos);
-//        if (mte instanceof MultiblockControllerBase multi && multi.isStructureFormed()) {
-//            PatternMatchContext context = multi.structurePattern.checkPatternFastAt(
-//                    world, pos, mte.getFrontFacing().getOpposite(), multi.getUpwardsFacing(), multi.allowsFlip());
-//            if (context != null) {
-//                List<BlockPos> validPos = multi.structurePattern.cache.keySet().stream().map(BlockPos::fromLong)
-//                        .collect(Collectors.toList());
-//                Set<IMultiblockPart> parts = context.getOrCreate("MultiblockParts", HashSet::new);
-//                for (IMultiblockPart part : parts) {
-//                    if (part instanceof MetaTileEntity) {
-//                        cores.add(((MetaTileEntity) part).getPos());
-//                    }
-//                }
-//                for (EnumFacing facing : EnumFacing.VALUES) {
-//                    cores.forEach(pos -> around.add(pos.offset(facing)));
-//                }
-//                int minX = Integer.MAX_VALUE;
-//                int minY = Integer.MAX_VALUE;
-//                int minZ = Integer.MAX_VALUE;
-//                int maxX = Integer.MIN_VALUE;
-//                int maxY = Integer.MIN_VALUE;
-//                int maxZ = Integer.MIN_VALUE;
-//                for (BlockPos vPos : validPos) {
-//                    around.add(vPos);
-//                    minX = Math.min(minX, vPos.getX());
-//                    minY = Math.min(minY, vPos.getY());
-//                    minZ = Math.min(minZ, vPos.getZ());
-//                    maxX = Math.max(maxX, vPos.getX());
-//                    maxY = Math.max(maxY, vPos.getY());
-//                    maxZ = Math.max(maxZ, vPos.getZ());
-//                }
-//                around.removeAll(cores);
-//                center = new Vector3f((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f);
-//            } else {
-//                for (EnumFacing facing : EnumFacing.VALUES) {
-//                    around.add(pos.offset(facing));
-//                }
-//                center = new Vector3f(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
-//            }
-//        } else {
-//            for (EnumFacing facing : EnumFacing.VALUES) {
-//                around.add(pos.offset(facing));
-//            }
-//            center = new Vector3f(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
-//        }
-//        worldSceneRenderer.addRenderedBlocks(cores, null);
-//        worldSceneRenderer.addRenderedBlocks(around, this::aroundBlocksRenderHook);
-//        worldSceneRenderer.setCameraLookAt(center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+        // if (!mte.isValid()) return;
+        // World world = mte.getWorld();
+        // if (worldSceneRenderer != null) {
+        // worldSceneRenderer.releaseFBO();
+        // }
+        // worldSceneRenderer = new FBOWorldSceneRenderer(world, 1080, 1080);
+        // worldSceneRenderer.setAfterWorldRender(this::renderBlockOverLay);
+        // cores = new HashSet<>();
+        // around = new HashSet<>();
+        // cores.add(pos);
+        // if (mte instanceof MultiblockControllerBase multi && multi.isStructureFormed()) {
+        // PatternMatchContext context = multi.structurePattern.checkPatternFastAt(
+        // world, pos, mte.getFrontFacing().getOpposite(), multi.getUpwardsFacing(), multi.allowsFlip());
+        // if (context != null) {
+        // List<BlockPos> validPos = multi.structurePattern.cache.keySet().stream().map(BlockPos::fromLong)
+        // .collect(Collectors.toList());
+        // Set<IMultiblockPart> parts = context.getOrCreate("MultiblockParts", HashSet::new);
+        // for (IMultiblockPart part : parts) {
+        // if (part instanceof MetaTileEntity) {
+        // cores.add(((MetaTileEntity) part).getPos());
+        // }
+        // }
+        // for (EnumFacing facing : EnumFacing.VALUES) {
+        // cores.forEach(pos -> around.add(pos.offset(facing)));
+        // }
+        // int minX = Integer.MAX_VALUE;
+        // int minY = Integer.MAX_VALUE;
+        // int minZ = Integer.MAX_VALUE;
+        // int maxX = Integer.MIN_VALUE;
+        // int maxY = Integer.MIN_VALUE;
+        // int maxZ = Integer.MIN_VALUE;
+        // for (BlockPos vPos : validPos) {
+        // around.add(vPos);
+        // minX = Math.min(minX, vPos.getX());
+        // minY = Math.min(minY, vPos.getY());
+        // minZ = Math.min(minZ, vPos.getZ());
+        // maxX = Math.max(maxX, vPos.getX());
+        // maxY = Math.max(maxY, vPos.getY());
+        // maxZ = Math.max(maxZ, vPos.getZ());
+        // }
+        // around.removeAll(cores);
+        // center = new Vector3f((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f);
+        // } else {
+        // for (EnumFacing facing : EnumFacing.VALUES) {
+        // around.add(pos.offset(facing));
+        // }
+        // center = new Vector3f(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
+        // }
+        // } else {
+        // for (EnumFacing facing : EnumFacing.VALUES) {
+        // around.add(pos.offset(facing));
+        // }
+        // center = new Vector3f(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
+        // }
+        // worldSceneRenderer.addRenderedBlocks(cores, null);
+        // worldSceneRenderer.addRenderedBlocks(around, this::aroundBlocksRenderHook);
+        // worldSceneRenderer.setCameraLookAt(center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
     }
 
     private void aroundBlocksRenderHook(boolean isTESR, int pass, BlockRenderLayer layer) {
