@@ -60,7 +60,6 @@ public abstract class MetaTileEntityMultiblockPart extends MetaTileEntity
 
     @Override
     public void renderMetaTileEntity(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline) {
-        if (controllerPos != null) GTLog.logger.info("pos: " + controllerPos);
         ICubeRenderer baseTexture = getBaseTexture();
         pipeline = ArrayUtils.add(pipeline,
                 new ColourMultiplier(GTUtility.convertRGBtoOpaqueRGBA_CL(getPaintingColorForRendering())));
@@ -76,7 +75,8 @@ public abstract class MetaTileEntityMultiblockPart extends MetaTileEntity
         return tier;
     }
 
-    public @Nullable MultiblockControllerBase getController() {
+    @Nullable
+    public MultiblockControllerBase getController() {
         tryInitControllers();
 
         if (getWorld() == null) {
@@ -155,7 +155,6 @@ public abstract class MetaTileEntityMultiblockPart extends MetaTileEntity
                 this.controllerPos = BlockPos.fromLong(data);
             } else {
                 controllerPos = null;
-                GTLog.logger.info("hi");
             }
             this.lastController = null;
             scheduleRenderUpdate();
