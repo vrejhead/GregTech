@@ -140,10 +140,6 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     @NotNull
     protected abstract IBlockPattern createStructurePattern();
 
-    /**
-     * Populate the structurePatterns array with structure patterns, values can be null. Doing this prevents
-     * frequent new BlockPatterns from being made.
-     */
     protected void createStructurePatterns() {
         structures.put("MAIN", createStructurePattern());
     }
@@ -462,7 +458,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     /**
      * Perform an action for each multiblock part in the substructure. This uses the pattern's cache, which is always
      * accurate if the structure is valid(and has undefined behavior(probably empty) if not). Using the cache means
-     * you can clear the multi's multiblock parts during this without causing a CME(which would happen if this iteratoes
+     * you can clear the multi's multiblock parts during this without causing a CME(which would happen if this iterates
      * over multiblockParts instead)
      * 
      * @param name   The name of the substructure.
@@ -525,6 +521,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     }
 
     public void invalidateStructure(String name) {
+        if (!getSubstructure(name).getPatternState().isFormed()) return;
         // invalidate the main structure
         if ("MAIN".equals(name)) {
             this.multiblockParts.forEach(part -> part.removeFromMultiBlock(this));
