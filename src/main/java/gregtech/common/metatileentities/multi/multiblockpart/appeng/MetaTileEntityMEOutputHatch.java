@@ -202,8 +202,8 @@ public class MetaTileEntityMEOutputHatch extends MetaTileEntityAEHostablePart<IA
     }
 
     @Override
-    public void addToMultiBlock(@NotNull MultiblockControllerBase controllerBase) {
-        super.addToMultiBlock(controllerBase);
+    public void addToMultiBlock(@NotNull MultiblockControllerBase controllerBase, @NotNull String name) {
+        super.addToMultiBlock(controllerBase, name);
         if (controllerBase instanceof MultiblockWithDisplayBase) {
             ((MultiblockWithDisplayBase) controllerBase).enableFluidInfSink();
         }

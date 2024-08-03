@@ -11,7 +11,6 @@ import gregtech.api.gui.resources.TextureArea;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.*;
-import gregtech.api.pattern.PatternMatchContext;
 import gregtech.api.pattern.pattern.BlockPattern;
 import gregtech.api.pattern.pattern.FactoryBlockPattern;
 import gregtech.api.recipes.RecipeMaps;
@@ -185,8 +184,8 @@ public class MetaTileEntityLargeCombustionEngine extends FuelMultiblockControlle
     }
 
     @Override
-    protected void formStructure(PatternMatchContext context) {
-        super.formStructure(context);
+    protected void formStructure(String name) {
+        super.formStructure(name);
         IEnergyContainer energyContainer = getEnergyContainer();
         this.boostAllowed = energyContainer != null && energyContainer.getOutputVoltage() >= GTValues.V[this.tier + 1];
     }

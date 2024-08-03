@@ -14,7 +14,6 @@ import gregtech.api.metatileentity.multiblock.MultiblockAbility;
 import gregtech.api.metatileentity.multiblock.MultiblockDisplayText;
 import gregtech.api.metatileentity.multiblock.RecipeMapMultiblockController;
 import gregtech.api.pattern.MultiblockShapeInfo;
-import gregtech.api.pattern.PatternMatchContext;
 import gregtech.api.pattern.pattern.BlockPattern;
 import gregtech.api.pattern.pattern.FactoryBlockPattern;
 import gregtech.api.recipes.Recipe;
@@ -62,8 +61,8 @@ public class MetaTileEntityResearchStation extends RecipeMapMultiblockController
     }
 
     @Override
-    protected void formStructure(PatternMatchContext context) {
-        super.formStructure(context);
+    protected void formStructure(String name) {
+        super.formStructure(name);
         List<IOpticalComputationHatch> providers = getAbilities(MultiblockAbility.COMPUTATION_DATA_RECEPTION);
         if (providers != null && providers.size() >= 1) {
             computationProvider = providers.get(0);
@@ -77,7 +76,7 @@ public class MetaTileEntityResearchStation extends RecipeMapMultiblockController
 
         // should never happen, but would rather do this than have an obscure NPE
         if (computationProvider == null || objectHolder == null) {
-            invalidateStructure();
+            invalidateStructure("MAIN");
         }
     }
 
@@ -86,7 +85,7 @@ public class MetaTileEntityResearchStation extends RecipeMapMultiblockController
     public void checkStructurePattern() {
         super.checkStructurePattern();
         if (isStructureFormed() && objectHolder.getFrontFacing() != getFrontFacing().getOpposite()) {
-            invalidateStructure();
+            invalidateStructure("MAIN");
         }
     }
 
@@ -96,7 +95,7 @@ public class MetaTileEntityResearchStation extends RecipeMapMultiblockController
     }
 
     @Override
-    public void invalidateStructure() {
+    public void invalidateStructure(String name) {
         computationProvider = null;
         // recheck the ability to make sure it wasn't the one broken
         List<IObjectHolder> holders = getAbilities(MultiblockAbility.OBJECT_HOLDER);
@@ -104,7 +103,7 @@ public class MetaTileEntityResearchStation extends RecipeMapMultiblockController
             objectHolder.setLocked(false);
         }
         objectHolder = null;
-        super.invalidateStructure();
+        super.invalidateStructure(name);
     }
 
     @Override
