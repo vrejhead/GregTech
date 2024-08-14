@@ -8,6 +8,7 @@ import gregtech.api.items.metaitem.stats.IItemHUDProvider;
 import gregtech.api.metatileentity.MetaTileEntityHolder;
 import gregtech.api.util.CapesRegistry;
 import gregtech.client.particle.GTParticleManager;
+import gregtech.client.renderer.handler.AABBHighlightRenderer;
 import gregtech.client.renderer.handler.BlockPosHighlightRenderer;
 import gregtech.client.renderer.handler.MultiblockPreviewRenderer;
 import gregtech.client.renderer.handler.TerminalARRenderer;
@@ -80,6 +81,7 @@ public class ClientEventHandler {
     public static void onRenderWorldLast(RenderWorldLastEvent event) {
         DepthTextureUtil.renderWorld(event);
         MultiblockPreviewRenderer.renderWorldLastEvent(event);
+        AABBHighlightRenderer.renderWorldLastEvent(event);
         BlockPosHighlightRenderer.renderWorldLastEvent(event);
         TerminalARRenderer.renderWorldLastEvent(event);
         GTParticleManager.renderWorld(event);

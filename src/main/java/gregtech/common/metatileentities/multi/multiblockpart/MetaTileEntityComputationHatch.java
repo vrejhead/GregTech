@@ -55,7 +55,7 @@ public class MetaTileEntityComputationHatch extends MetaTileEntityMultiblockPart
     public int requestCWUt(int cwut, boolean simulate, @NotNull Collection<IOpticalComputationProvider> seen) {
         seen.add(this);
         var controller = getController();
-        if (controller == null || !controller.isStructureFormed()) return 0;
+        if (controller == null || !controller.isStructureFormed("MAIN")) return 0;
         if (isTransmitter()) {
             // Ask the Multiblock controller, which *should* be an IOpticalComputationProvider
             if (controller instanceof IOpticalComputationProvider provider) {
@@ -76,7 +76,7 @@ public class MetaTileEntityComputationHatch extends MetaTileEntityMultiblockPart
     public int getMaxCWUt(@NotNull Collection<IOpticalComputationProvider> seen) {
         seen.add(this);
         var controller = getController();
-        if (controller == null || !controller.isStructureFormed()) return 0;
+        if (controller == null || !controller.isStructureFormed("MAIN")) return 0;
         if (isTransmitter()) {
             // Ask the Multiblock controller, which *should* be an IOpticalComputationProvider
             if (controller instanceof IOpticalComputationProvider provider) {
@@ -98,7 +98,7 @@ public class MetaTileEntityComputationHatch extends MetaTileEntityMultiblockPart
         seen.add(this);
         var controller = getController();
         // return true here so that unlinked hatches don't cause problems in multis like the Network Switch
-        if (controller == null || !controller.isStructureFormed()) return true;
+        if (controller == null || !controller.isStructureFormed("MAIN")) return true;
         if (isTransmitter()) {
             // Ask the Multiblock controller, which *should* be an IOpticalComputationProvider
             if (controller instanceof IOpticalComputationProvider provider) {

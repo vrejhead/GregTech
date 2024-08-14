@@ -82,7 +82,10 @@ import java.util.stream.Collectors;
 import static gregtech.api.capability.GregtechDataCodes.*;
 
 public abstract class MultiblockControllerBase extends MetaTileEntity implements IMultiblockController {
-
+    protected final Comparator<IMultiblockPart> partComparator = Comparator.comparingLong(part -> {
+                MetaTileEntity mte = (MetaTileEntity) part;
+                return ((long) multiblockPartSorter().apply(mte.getPos()) << 32) | mte.getPos().hashCode();
+            });
     /**
      * Null until the first time {@link MultiblockControllerBase#getMatchingShapes()} is called, if it is not overriden
      */
@@ -92,10 +95,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
 
     // treeset here to get logn time for contains, and for automatically sorting itself
     // prioritize the manually specified sorter first, defaulting to the hashcode for tiebreakers
-    private final NavigableSet<IMultiblockPart> multiblockParts = new TreeSet<>(Comparator.comparingLong(part -> {
-        MetaTileEntity mte = (MetaTileEntity) part;
-        return ((long) multiblockPartSorter().apply(mte.getPos()) << 32) | mte.getPos().hashCode();
-    }));
+    private final NavigableSet<IMultiblockPart> multiblockParts = new TreeSet<>(partComparator);
 
     protected EnumFacing upwardsFacing = EnumFacing.NORTH;
     protected final Object2ObjectMap<String, IBlockPattern> structures = new Object2ObjectOpenHashMap<>();
@@ -124,7 +124,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
             }
             // DummyWorld is the world for the JEI preview. We do not want to update the Multi in this world,
             // besides initially forming it in checkStructurePattern
-            if (isStructureFormed() && !(getWorld() instanceof DummyWorld)) {
+            if (isStructureFormed("MAIN") && !(getWorld() instanceof DummyWorld)) {
                 updateFormedValid();
             }
         }
@@ -138,7 +138,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     /**
      * @return structure pattern of this multiblock
      */
-    // todo fix central monitor, charcoal pile igniter, and cleanroom(and vacuum freezer)
+    // todo fix central monitor, charcoal pile igniter, (and vacuum freezer)
     @NotNull
     protected abstract IBlockPattern createStructurePattern();
 
@@ -288,8 +288,8 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     public static TraceabilityPredicate frames(Material... frameMaterials) {
         return states(Arrays.stream(frameMaterials).map(m -> MetaBlocks.FRAMES.get(m).getBlock(m))
                 .toArray(IBlockState[]::new))
-                        .or(new TraceabilityPredicate(blockWorldState -> {
-                            TileEntity tileEntity = blockWorldState.getTileEntity();
+                        .or(new TraceabilityPredicate((worldState, patternState) -> {
+                            TileEntity tileEntity = worldState.getTileEntity();
                             if (!(tileEntity instanceof IPipeTile<?, ?>pipeTile)) {
                                 return false;
                             }
@@ -416,6 +416,8 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
                 if (result.getState() == PatternState.EnumCheckState.VALID_UNCACHED) {
                     // add any new parts, because removal of parts is impossible
                     // it is possible for old parts to persist, so check that
+                    List<IMultiblockAbilityPart<Object>> addedParts = new ArrayList<>();
+
                     forEachMultiblockPart(name, part -> {
                         // this part is already added, so igore it
                         if (multiblockParts.contains(part)) return true;
@@ -426,12 +428,20 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
                             return false;
                         }
                         part.addToMultiBlock(this, name);
-                        if (part instanceof IMultiblockAbilityPart<?>abilityPart) {
+                        if (part instanceof IMultiblockAbilityPart<?> abilityPart) {
                             // noinspection unchecked
-                            registerMultiblockAbility((IMultiblockAbilityPart<Object>) abilityPart);
+                            addedParts.add((IMultiblockAbilityPart<Object>) abilityPart);
                         }
                         return true;
                     });
+
+                    // another bandaid fix, see below todo
+                    addedParts.sort(partComparator);
+
+                    for (IMultiblockAbilityPart<Object> part : addedParts) {
+                        registerMultiblockAbility(part);
+                    }
+
                     formStructure(name);
                 }
                 return;
@@ -455,12 +465,21 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
                 // parts *should* not have this controller added
                 multiblockParts.add(part);
                 part.addToMultiBlock(this, name);
-                if (part instanceof IMultiblockAbilityPart<?>abilityPart) {
+//                if (part instanceof IMultiblockAbilityPart<?>abilityPart) {
+//                    // noinspection unchecked
+//                    registerMultiblockAbility((IMultiblockAbilityPart<Object>) abilityPart);
+//                }
+                return true;
+            });
+
+            // todo this is maybe a bandaid fix, maybe use NavigableSet<Object> instead of using List<Object> and relying on the NavigableSet<T> of multiblockParts?
+            for (IMultiblockPart part : multiblockParts) {
+                if (name.equals(part.getSubstructureName()) && part instanceof IMultiblockAbilityPart<?> abilityPart) {
                     // noinspection unchecked
                     registerMultiblockAbility((IMultiblockAbilityPart<Object>) abilityPart);
                 }
-                return true;
-            });
+            }
+
             formStructure(name);
         } else { // structure check fails
             if (result.isFormed()) { // invalidate if not already
@@ -506,7 +525,6 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
         part.registerAbilities(abilityList);
     }
 
-    // todo do
     protected void forEachFormed(String name, Consumer<BlockInfo> action) {
         Long2ObjectMap<BlockInfo> cache = getSubstructure(name).getCache();
         for (BlockInfo info : cache.values()) {
@@ -586,7 +604,6 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
         return Collections.unmodifiableList(rawList);
     }
 
-    // todo fix/update usages of this
     public NavigableSet<IMultiblockPart> getMultiblockParts() {
         return Collections.unmodifiableNavigableSet(multiblockParts);
     }
@@ -639,7 +656,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
                 getSubstructure(name).getPatternState().setFormed(buf.readBoolean());
             }
 
-            if (!isStructureFormed()) {
+            if (!isStructureFormed("MAIN")) {
                 GregTechAPI.soundManager.stopTileSound(getPos());
             }
         }
@@ -656,6 +673,10 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
         return null;
     }
 
+    /**
+     * Use {@link MultiblockControllerBase#isStructureFormed(String)} instead!
+     */
+    @Deprecated
     public boolean isStructureFormed() {
         return isStructureFormed("MAIN");
     }
@@ -709,7 +730,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
         if (super.onRightClick(playerIn, hand, facing, hitResult))
             return true;
 
-        if (this.getWorld().isRemote && !this.isStructureFormed() && playerIn.isSneaking() &&
+        if (this.getWorld().isRemote && !this.isStructureFormed("MAIN") && playerIn.isSneaking() &&
                 playerIn.getHeldItem(hand).isEmpty()) {
             MultiblockPreviewRenderer.renderMultiBlockPreview(this, 60000);
             return true;
@@ -791,7 +812,6 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     }
 
     public void explodeMultiblock(float explosionPower) {
-        ;
         for (IMultiblockPart part : multiblockParts) {
             part.removeFromMultiBlock(this);
             ((MetaTileEntity) part).doExplosion(explosionPower);

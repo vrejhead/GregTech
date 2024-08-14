@@ -113,7 +113,7 @@ public abstract class RecipeMapMultiblockController extends MultiblockWithDispla
 
     @Override
     public boolean isActive() {
-        return isStructureFormed() && recipeMapWorkable.isActive() && recipeMapWorkable.isWorkingEnabled();
+        return isStructureFormed("MAIN") && recipeMapWorkable.isActive() && recipeMapWorkable.isWorkingEnabled();
     }
 
     protected void initializeAbilities() {
@@ -140,7 +140,7 @@ public abstract class RecipeMapMultiblockController extends MultiblockWithDispla
 
     @Override
     protected void addDisplayText(List<ITextComponent> textList) {
-        MultiblockDisplayText.builder(textList, isStructureFormed())
+        MultiblockDisplayText.builder(textList, isStructureFormed("MAIN"))
                 .setWorkingStatus(recipeMapWorkable.isWorkingEnabled(), recipeMapWorkable.isActive())
                 .addEnergyUsageLine(recipeMapWorkable.getEnergyContainer())
                 .addEnergyTierLine(GTUtility.getTierByVoltage(recipeMapWorkable.getMaxVoltage()))
@@ -151,7 +151,7 @@ public abstract class RecipeMapMultiblockController extends MultiblockWithDispla
 
     @Override
     protected void addWarningText(List<ITextComponent> textList) {
-        MultiblockDisplayText.builder(textList, isStructureFormed(), false)
+        MultiblockDisplayText.builder(textList, isStructureFormed("MAIN"), false)
                 .addLowPowerLine(recipeMapWorkable.isHasNotEnoughEnergy())
                 .addMaintenanceProblemLines(getMaintenanceProblems());
     }
