@@ -190,8 +190,10 @@ public class MetaTileEntityCharcoalPileIgniter extends MultiblockControllerBase 
 
     @NotNull
     private TraceabilityPredicate logPredicate() {
-        return new TraceabilityPredicate((worldState, patternState) -> worldState.getBlockState().getBlock().isWood(worldState.getWorld(),
-                worldState.getPos()) || worldState.getBlockState().equals(MetaBlocks.BRITTLE_CHARCOAL.getDefaultState()));
+        return new TraceabilityPredicate(
+                (worldState, patternState) -> worldState.getBlockState().getBlock().isWood(worldState.getWorld(),
+                        worldState.getPos()) ||
+                        worldState.getBlockState().equals(MetaBlocks.BRITTLE_CHARCOAL.getDefaultState()));
     }
 
     private void setActive(boolean active) {
@@ -251,7 +253,8 @@ public class MetaTileEntityCharcoalPileIgniter extends MultiblockControllerBase 
     }
 
     @Override
-    public boolean onScrewdriverClick(EntityPlayer playerIn, EnumHand hand, EnumFacing facing, CuboidRayTraceResult hitResult) {
+    public boolean onScrewdriverClick(EntityPlayer playerIn, EnumHand hand, EnumFacing facing,
+                                      CuboidRayTraceResult hitResult) {
         // todo add general direction lang(applies for cleanroom as well)
         if (!playerIn.isSneaking()) {
             if (getWorld().isRemote) return true;
@@ -364,11 +367,11 @@ public class MetaTileEntityCharcoalPileIgniter extends MultiblockControllerBase 
     @Override
     public void receiveCustomData(int dataId, PacketBuffer buf) {
         super.receiveCustomData(dataId, buf);
-        if (dataId == GregtechDataCodes.UPDATE_STRUCTURE_SIZE) {
-        } else if (dataId == GregtechDataCodes.WORKABLE_ACTIVE) {
-            this.isActive = buf.readBoolean();
-            scheduleRenderUpdate();
-        }
+        if (dataId == GregtechDataCodes.UPDATE_STRUCTURE_SIZE) {} else
+            if (dataId == GregtechDataCodes.WORKABLE_ACTIVE) {
+                this.isActive = buf.readBoolean();
+                scheduleRenderUpdate();
+            }
     }
 
     /**
